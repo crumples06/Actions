@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+  workflow_dispatch:
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Build and start services 
+        run: docker compose up -d --build
+
+      - name: Wait for services to be ready
+        run: sleep 10
+
+      - name: Check container status
+        run: docker compose ps
+
+      - name: Exec into control node
+        run: docker exec -it control bash
+
+      - name: ping other nodes (targets)
+        run: ansible targets -i inventory.ini -m ping
+        
