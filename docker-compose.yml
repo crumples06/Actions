@@ -31,6 +31,5 @@ services:
 
 networks:
   ansible_net:
-    external: true
     
   
