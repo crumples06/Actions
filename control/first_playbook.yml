@@ -1,0 +1,21 @@
+---
+- name: Install and optionally start a package
+  hosts: targets
+  become: true
+
+  vars:
+    package_name: nginx
+    is_service: true
+
+  tasks:
+    - name: Install package
+      apt:
+        name: "{{ package_name }}"
+        state: present
+        update_cache: true
+
+    - name: Start package service
+      service: 
+        name: "{{ package_name }}"
+        state: started
+      when : is_service

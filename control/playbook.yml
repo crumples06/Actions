@@ -1,0 +1,12 @@
+---
+- name: play
+  hosts: targets
+
+  tasks:
+    - name: ping targets
+      ansible.builtin.ping:
+
+    - name: Print msg
+      ansible.builtin.debug:
+        msg: Hello there
+        

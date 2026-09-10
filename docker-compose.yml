@@ -1,0 +1,36 @@
+services:
+  target1:
+    build: .
+    expose:
+      - 22
+    networks:
+      - ansible_net
+    container_name: target1
+
+  target2:
+    build: .
+    expose:
+      - 22
+    networks:
+      - ansible_net
+    container_name: target2
+
+
+  control:
+    image: python:3.11-slim
+    working_dir: /work
+    volumes:
+      - ./control:/work
+    networks:
+      - ansible_net
+    container_name: control
+    stdin_open: true
+    tty: true
+    command: >
+      bash -c "apt-get update && apt-get install -y sshpass && pip install ansible && bash"
+
+networks:
+  ansible_net:
+    external: true
+    
+  
