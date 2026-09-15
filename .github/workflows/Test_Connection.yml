@@ -23,9 +23,13 @@ jobs:
       - name: Check container status
         run: docker compose ps
 
-      - name: Exec into control node
-        run: docker exec -it control bash
+      - name: Ping other nodes fron control container
+        run: docker exec control ansible targets -i inventory.ini -m ping
 
-      - name: ping other nodes (targets)
-        run: ansible targets -i inventory.ini -m ping
-        
+      - name: show logs if failed
+        if: failure()
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        run: docker compose down
