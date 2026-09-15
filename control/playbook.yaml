@@ -4,3 +4,7 @@
   roles:
     - web
         
+- hosts: loadBalancer
+  become: yes
+  roles:
+    - loadBalancer

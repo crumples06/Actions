@@ -27,7 +27,13 @@ services:
     stdin_open: true
     tty: true
     command: >
-      bash -c "apt-get update && apt-get install -y sshpass && pip install ansible && apt install curl && bash"
+      bash -c "apt-get update && apt-get install -y sshpass curl && pip install ansible && bash"
+
+  loadbalancer:
+    build: .
+    networks:
+      - ansible_net
+    container_name: loadbalancer
 
 networks:
   ansible_net:

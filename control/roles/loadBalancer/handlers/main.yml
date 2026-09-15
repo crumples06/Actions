@@ -1,3 +1,12 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # handlers file for roles/loadBalancer
+- name: reload nginx
+  service:
+    name: nginx
+    state: reloaded
+
+- name: restart nginx
+  service: 
+    name: nginx
+    state: restarted
