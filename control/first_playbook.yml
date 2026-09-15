@@ -1,6 +1,6 @@
 ---
 - name: Install and optionally start a package
-  hosts: targets
+  hosts: web
   become: true
 
   vars:

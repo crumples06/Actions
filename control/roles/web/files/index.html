@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Page</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #f4f6f8;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin-bottom: 12px;
+    }
+
+    p {
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    button {
+      font: inherit;
+      font-weight: 600;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 28px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    button:hover { background: #1d4ed8; }
+    button:active { transform: translateY(1px); }
+
+    #output {
+      margin-top: 20px;
+      font-weight: 600;
+      color: #2563eb;
+      min-height: 1.5em;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Hello there 👋</h1>
+    <p>This is a simple web page. Click the button to see it come alive.</p>
+    <button id="btn">Click me</button>
+    <div id="output"></div>
+  </main>
+
+  <script>
+    const btn = document.getElementById('btn');
+    const output = document.getElementById('output');
+    let count = 0;
+
+    btn.addEventListener('click', () => {
+      count++;
+      output.textContent = `You clicked ${count} time${count === 1 ? '' : 's'}.`;
+    });
+  </script>
+</body>
+</html>

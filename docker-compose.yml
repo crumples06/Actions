@@ -1,19 +1,19 @@
 services:
-  target1:
+  web1:
     build: .
     expose:
       - 22
     networks:
       - ansible_net
-    container_name: target1
+    container_name: web1
 
-  target2:
+  web2:
     build: .
     expose:
       - 22
     networks:
       - ansible_net
-    container_name: target2
+    container_name: web2
 
 
   control:
@@ -27,7 +27,7 @@ services:
     stdin_open: true
     tty: true
     command: >
-      bash -c "apt-get update && apt-get install -y sshpass && pip install ansible && bash"
+      bash -c "apt-get update && apt-get install -y sshpass && pip install ansible && apt install curl && bash"
 
 networks:
   ansible_net:
