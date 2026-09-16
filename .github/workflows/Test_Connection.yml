@@ -1,34 +1,30 @@
 name: CI
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
-  docker-test:
+  test-infra:
     runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Build and start services 
-        run: docker compose up -d --build
+        run: docker compose up --build --wait
 
-      - name: Wait for services to be ready
-        run: sleep 10
+      - name: Run ansible playbook
+        run: docker exec control ansible-playbook -i inventory.ini playbook.yaml
 
-      - name: Check container status
-        run: docker compose ps
-
-      - name: Ping other nodes fron control container
-        run: docker exec control ansible targets -i inventory.ini -m ping
-
-      - name: show logs if failed
-        if: failure()
-        run: docker compose logs
+      - name: Verify load balancing
+        run: |
+          rm -f /tmp/results.txt
+          for i in $(seq 1 10); do 
+            echo "Request $i"
+            docker exec control curl -sS loadbalancer >> /tmp/results.txt
+          done
+          grep -q "web1" /tmp/results.txt && grep -q "web2" /tmp/results.txt
 
       - name: Tear down
         if: always()
