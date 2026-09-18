@@ -1,0 +1,5 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for hardening
+public_key_path: "{{ playbook_dir }}/ssh_keys/ansible_hardening_key.pub"
+private_key_path: "{{ playbook_dir }}/ssh_keys/ansible_hardening_key"
