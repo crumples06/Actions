@@ -7,6 +7,12 @@
     state: present
   become: true
 
+- name: Install ufw
+  apt:
+    name: ufw
+    state: present
+  become: true
+
 - name: deploy webpage
   template: 
     src: index.html.j2

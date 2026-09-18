@@ -3,8 +3,10 @@
   become: yes
   roles:
     - web
+    - hardening
         
 - hosts: loadBalancer
   become: yes
   roles:
     - loadBalancer
+    - hardening

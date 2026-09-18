@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for hardening
+- name: reload ssh
+  service: 
+    name: ssh
+    state: reloaded

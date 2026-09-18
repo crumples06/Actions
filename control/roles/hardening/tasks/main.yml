@@ -1,0 +1,28 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for hardening
+- name: Change permissions of the private ssh_key
+  ansible.builtin.file:
+    path: "{{ private_key_path }}"
+    mode: '600'
+  delegate_to: localhost
+
+- name: Manage SSH Keys
+  ansible.builtin.authorized_key:
+    user: ansible
+    state: present
+    key: "{{ lookup('file', public_key_path) }}"
+
+- name: Disable SSH Password Authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?\s*PasswordAuthentication\s+'
+    line: 'PasswordAuthentication no'
+  notify: reload ssh
+
+- name: Disable password root login
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?\s*PermitRootLogin\s+'
+    line: 'PermitRootLogin prohibit-password'
+  notify: reload ssh
