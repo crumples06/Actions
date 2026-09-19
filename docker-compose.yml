@@ -41,6 +41,12 @@ services:
       - ansible_net
     container_name: loadbalancer
 
+  db:
+    build: .
+    networks:
+      - ansible_net
+    container_name: db
+
 networks:
   ansible_net:
     
