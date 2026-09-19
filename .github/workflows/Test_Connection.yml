@@ -24,9 +24,6 @@ jobs:
       - name: Write vault password files
         run: echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > control/vault_pass.txt
 
-      - name: Debug vault password length
-        run: wc -c control/vault_pass.txt
-
       - name: Run ansible playbook
         run: docker exec control ansible-playbook -i inventory.ini playbook.yaml --vault-password-file vault_pass.txt
 
