@@ -27,7 +27,7 @@ services:
     stdin_open: true
     tty: true
     command: >
-      bash -c "apt-get update && apt-get install -y sshpass curl && pip install ansible && bash"
+      bash -c "apt-get update && apt-get install -y sshpass curl && pip install ansible && ansible-galaxy collection install community.mysql && bash"
     healthcheck:
       test: ["CMD-SHELL", "command -v ansible >/dev/null && command -v curl >/dev/null && command -v sshpass >/dev/null"]
       interval: 10s
