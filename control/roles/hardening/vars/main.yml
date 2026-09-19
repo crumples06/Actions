@@ -1,3 +1,4 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # vars file for hardening
+db_password: "{{ vault_db_password }}"

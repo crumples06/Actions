@@ -11,11 +11,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Restore SSH keys
+        run: |
+          mkdir -p control/ssh_keys
+          printf '%s\n' "${{ secrets.ANSIBLE_SSH_PRIVATE_KEY }}" > control/ssh_keys/ansible_hardening_key
+          printf '%s\n' "${{ secrets.ANSIBLE_SSH_PUBLIC_KEY }}" > control/ssh_keys/ansible_hardening_key.pub
+          chmod 600 control/ssh_keys/ansible_hardening_key
+
       - name: Build and start services 
         run: docker compose up --build --wait
 
+      - name: Write vault password file
+        run: echo "{{ secrets.ANSIBLE_VAULT_PASSWORD }}" > control/vault_pass.txt 
+
       - name: Run ansible playbook
-        run: docker exec control ansible-playbook -i inventory.ini playbook.yaml
+        run: docker exec control ansible-playbook -i inventory.ini playbook.yaml --vault-password-file vault_pass.txt
 
       - name: Verify load balancing
         run: |
