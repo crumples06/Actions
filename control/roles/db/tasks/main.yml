@@ -1,0 +1,39 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/db
+- name: Install Mysql
+  apt:
+    name: 
+      - mysql-server
+      - python3-pymysql
+    state: present
+  become: true
+
+- name: Start Mysql
+  command: service mysql restart
+  become: true
+  changed_when: true
+
+- name: Wait for Mysql socket to be ready
+  wait_for:
+    path: /var/run/mysqld/mysqld.sock
+    state: present
+    timeout: 30
+  become: true
+
+- name: Create application database
+  community.mysql.mysql_db:
+    name: myapp
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become: true
+
+- name: Create application db user
+  community.mysql.mysql_user:
+    name: myapp_user
+    password: "{{ db_password }}"
+    priv: "myapp.*:ALL"
+    host: "%"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  become: true

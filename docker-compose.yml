@@ -27,9 +27,9 @@ services:
     stdin_open: true
     tty: true
     command: >
-      bash -c "apt-get update && apt-get install -y sshpass curl && pip install ansible && bash"
+      bash -c "apt-get update && apt-get install -y sshpass curl && pip install ansible && ansible-galaxy collection install community.mysql && bash"
     healthcheck:
-      test: ["CMD-SHELL", "command -v ansible >/dev/null && command -v curl >/dev/null && command -v sshpass >/dev/null"]
+      test: ["CMD-SHELL", "command -v ansible >/dev/null && command -v curl >/dev/null && command -v sshpass >/dev/null && ansible-galaxy collection list 2>/dev/null | grep -q community.mysql"]
       interval: 10s
       timeout: 1m
       retries: 6
@@ -40,6 +40,12 @@ services:
     networks:
       - ansible_net
     container_name: loadbalancer
+
+  db:
+    build: .
+    networks:
+      - ansible_net
+    container_name: db
 
 networks:
   ansible_net:

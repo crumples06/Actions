@@ -10,3 +10,11 @@
   roles:
     - loadBalancer
     - hardening
+
+- hosts: db 
+  become: yes
+  vars_files:
+    - roles/db/vars/vault.yml 
+  roles:
+    - db
+    - hardening
