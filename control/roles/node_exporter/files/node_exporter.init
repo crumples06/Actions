@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 NAME=node_exporter
 DAEMON=/usr/local/bin/node_exporter

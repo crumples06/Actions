@@ -52,6 +52,8 @@ services:
     networks:
     - ansible_net
     container_name: monitoring
+    ports:
+      - "3000:3000"
 
 networks:
   ansible_net:

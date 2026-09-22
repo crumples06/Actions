@@ -1,2 +1,3 @@
 ssh_keys/* -text
 roles/db/vars/vault.yml -text
+roles/*/files/* -text
