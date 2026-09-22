@@ -1,38 +1,34 @@
-Role Name
-=========
+# Web Role
 
-A brief description of the role goes here.
+Installs nginx and deploys a simple templated webpage to each web-tier host (`web1`, `web2`). Applied alongside `hardening` and `node_exporter` in the `web` play of `playbook.yaml` — `web` handles the host's actual job, the other two are cross-cutting concerns applied the same way across every tier.
 
-Requirements
-------------
+## What it does
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Installs `nginx` via `apt`.
+- Installs `ufw` (package only — no rules are configured; see [Deliberately deferred](#deliberately-deferred--not-implemented) in the `hardening` role README for why firewalling isn't active in this container-based setup).
+- Deploys `templates/index.html.j2` to `/var/www/html/index.html`. The template uses `inventory_hostname`, so each host serves a page identifying itself — this is what makes the CI load-balancing check (and manual browser testing) able to distinguish `web1` from `web2` behind the load balancer rather than seeing identical content from both.
+- Starts and enables nginx via the `service` module (`state: started`, `enabled: true`).
 
-Role Variables
---------------
+## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+None currently defined — `vars/main.yml` and `defaults/main.yml` are both empty placeholders.
 
-Dependencies
-------------
+## Verification
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+Confirmed both indirectly (via the `loadBalancer` role and the CI load-balancing check, which asserts both `web1` and `web2` appear across repeated requests through the load balancer) and directly:
 
-Example Playbook
-----------------
+```bash
+curl http://web1
+curl http://web2
+```
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Each should return a page whose content differs only in the hostname it reports.
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+## Dependencies
 
-License
--------
+None directly — relies on `groups['web']` being correctly populated in `inventory.ini` for the `loadBalancer` role's upstream config and Prometheus's scrape targets to find these hosts, but the `web` role itself doesn't reference other roles or groups.
 
-BSD
+## Deliberately deferred / not implemented
 
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+- No real application — this is a portfolio/showcase project, so the "web tier" is a placeholder page rather than a deployed app. Swapping in a real app would mean replacing this role's task list and template with whatever that app's deployment actually requires.
+- `ufw` is installed but not configured — same reasoning as the `hardening` role's decision not to manage firewall rules inside these containers (Docker doesn't grant `NET_ADMIN`/`NET_RAW` by default; real deployments should firewall at the host/cloud layer).

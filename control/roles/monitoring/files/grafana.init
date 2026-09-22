@@ -1,0 +1,53 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          grafana-server
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: grafana-server service
+### END INIT INFO
+
+NAME=grafana-server
+DAEMON=/usr/share/grafana/bin/grafana
+PIDFILE=/run/grafana/grafana-server.pid
+
+# pulls in CONF_FILE, LOG_DIR, DATA_DIR, PLUGINS_DIR, PROVISIONING_CFG_DIR, PID_FILE_DIR
+. /etc/default/grafana-server
+
+ARGS="server --config=${CONF_FILE} --pidfile=${PID_FILE_DIR}/grafana-server.pid --packaging=deb \
+  cfg:default.paths.logs=${LOG_DIR} \
+  cfg:default.paths.data=${DATA_DIR} \
+  cfg:default.paths.plugins=${PLUGINS_DIR} \
+  cfg:default.paths.provisioning=${PROVISIONING_CFG_DIR} \
+  cfg:default.paths.bundled_plugins=${DATA_DIR}/plugins-bundled"
+
+start() {
+    start-stop-daemon --start --background \
+      --chuid grafana:grafana --chdir /usr/share/grafana \
+      --exec $DAEMON -- $ARGS
+}
+
+stop() {
+    start-stop-daemon --stop --pidfile $PIDFILE
+    rm -f $PIDFILE
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0

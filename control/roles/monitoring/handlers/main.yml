@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for roles/monitoring
+- name: restart prometheus
+  command: service prometheus restart
+  changed_when: true
+
+- name: Restart grafana
+  ansible.builtin.command: service grafana-server restart
+  become: true
+  changed_when: true

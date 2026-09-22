@@ -4,12 +4,14 @@
   roles:
     - web
     - hardening
+    - node_exporter
         
 - hosts: loadBalancer
   become: yes
   roles:
     - loadBalancer
     - hardening
+    - node_exporter
 
 - hosts: db 
   become: yes
@@ -18,3 +20,13 @@
   roles:
     - db
     - hardening
+    - node_exporter
+
+- hosts: monitoring
+  become: yes
+  vars_files:
+    - roles/monitoring/vars/vault.yml 
+  roles:
+    - monitoring
+    - hardening
+    - node_exporter

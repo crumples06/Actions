@@ -1,0 +1,34 @@
+#!bin/bash
+
+NAME=prometheus
+DAEMON=/usr/local/bin/prometheus
+PIDFILE=/var/run/prometheus.pid
+ARGS="--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/var/lib/prometheus/"
+
+start() {
+    start-stop-daemon --start --background --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- $ARGS
+}
+
+stop() {
+    start-stop-daemon --stop --pidfile $PIDFILE
+    rm -f $PIDFILE
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage $0 {start|stop\restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

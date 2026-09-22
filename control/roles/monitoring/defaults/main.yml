@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for roles/monitoring
+grafana_version: "latest"
+
+grafana_http_port: 3000
+
+grafana_plugins:
+  - grafana-clock-panel
+  - grafana-polystat-panel
+
