@@ -1,38 +1,38 @@
-Role Name
-=========
+# LoadBalancer Role
 
-A brief description of the role goes here.
+Installs and configures nginx as a reverse proxy / load balancer in front of the web tier, on the dedicated `loadbalancer` host. Applied alongside `hardening` and `node_exporter` in the `loadBalancer` play of `playbook.yaml`.
 
-Requirements
-------------
+## What it does
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Installs `nginx` via `apt`.
+- Deploys `templates/nginx.conf.j2` to `/etc/nginx/nginx.conf`. The template loops over `groups['web']` (Ansible's automatic inventory-group variable) to build an `upstream` block listing every web-tier host, using `least_conn` as the balancing algorithm. This means the load balancer's config is generated entirely from inventory — add or remove a host from `[web]` in `inventory.ini`, rerun the playbook, and the upstream block updates automatically with no manual editing. Prometheus's scrape-target list in the `monitoring` role uses the same inventory-driven pattern.
+- Deploying the config `notify`s a `reload nginx` handler (`state: reloaded`), so config changes take effect without a full restart.
+- Starts and enables nginx via the `service` module.
 
-Role Variables
---------------
+## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+None currently defined — `vars/main.yml` and `defaults/main.yml` are both empty placeholders.
 
-Dependencies
-------------
+## Handlers
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- `reload nginx` — `state: reloaded`, triggered by config file changes.
+- `restart nginx` — `state: restarted`, defined but not currently wired to any task; available if a future change needs a full restart rather than a reload.
 
-Example Playbook
-----------------
+## Verification
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Verified in CI (`Test_Connection.yml`, "Verify load balancing" step): a 10-request loop against `http://loadbalancer` asserts that both `web1` and `web2` appear across the responses, confirming `least_conn` is actually distributing traffic across both upstream hosts rather than pinning to one.
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+Manual check:
+```bash
+for i in $(seq 1 10); do curl -s http://loadbalancer; echo; done
+```
+Each response's content should vary between web1 and web2 (per the `web` role's hostname-templated page), confirming both are being hit.
 
-License
--------
+## Dependencies
 
-BSD
+Depends on `groups['web']` being correctly populated in `inventory.ini` — the upstream block is empty (and nginx would fail to start) if that group is empty or misnamed.
 
-Author Information
-------------------
+## Deliberately deferred / not implemented
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+- No health-check-based upstream removal — nginx's open-source build doesn't support active health checks out of the box, so a failed web host currently only drops out of rotation once `least_conn` naturally routes around slow/hung connections, not via an explicit health probe. Worth knowing when reasoning about the kill-and-recover demo in the `monitoring` role: nginx itself doesn't "detect" web1 going down in the same sense Prometheus/Grafana do.
+- No TLS/SSL termination — this is an HTTP-only reverse proxy, consistent with the project's scope as an infra showcase rather than a production-facing service.

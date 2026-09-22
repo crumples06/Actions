@@ -1,0 +1,195 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/monitoring
+- name: Download Prometheus
+  get_url:
+    url: "https://github.com/prometheus/prometheus/releases/download/v3.12.0/prometheus-3.12.0.linux-amd64.tar.gz"
+    dest: /tmp/prometheus.tar.gz
+  become: true
+
+- name: Extract Prometheus
+  unarchive:
+    src: /tmp/prometheus.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: Create Prometheus config directory
+  file:
+    path: /etc/prometheus
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Create Prometheus data directory
+  file:
+    path: /var/lib/prometheus
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Install Prometheus binary
+  copy: 
+    src: /tmp/prometheus-3.12.0.linux-amd64/prometheus
+    dest: /usr/local/bin/prometheus
+    mode: '0755'
+    remote_src: true
+  become: true
+
+- name: Install promtool binary
+  copy: 
+    src: /tmp/prometheus-3.12.0.linux-amd64/promtool
+    dest: /usr/local/bin/promtool
+    mode: '0755'
+    remote_src: true
+  become: true
+
+- name: Deploy prometheus config
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    mode: '0755'
+  become: true
+  notify: restart prometheus
+
+- name: Deploy Prometheus init script
+  copy:
+    src: prometheus.init
+    dest: /etc/init.d/prometheus
+    mode: '0755'
+  become: true
+
+- name: Start Prometheus
+  command: service prometheus start
+  become: true
+  changed_when: true
+
+- name: Install required packages
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - python3-debian
+      - wget
+      - gnupg
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Add Grafana APT repository
+  ansible.builtin.deb822_repository:
+    name: grafana 
+    types: 
+      - deb 
+    uris: https://apt.grafana.com
+    suites:
+      - stable
+    components: 
+      - main
+    signed_by: https://apt.grafana.com/gpg-full.key
+    state: present
+  become: true
+
+- name: Install Grafana
+  ansible.builtin.apt:
+    name: "grafana"
+    state: "latest"
+    update_cache: yes
+  become: true
+  notify: Restart grafana
+
+- name: Deploy datasource provisioning file
+  ansible.builtin.template:
+    src: datasource.yml.j2
+    dest: /etc/grafana/provisioning/datasources/ansible.yml
+    owner: grafana
+    group: grafana
+    mode: "0640"
+  become: true
+
+- name: Deploy datasource provisioning file
+  ansible.builtin.template:
+    src: datasource.yml.j2
+    dest: /etc/grafana/provisioning/datasources/ansible.yml
+    owner: grafana
+    group: grafana
+    mode: "0640"
+  become: true
+
+- name: Deploy datasource provisioning file
+  ansible.builtin.template:
+    src: datasource.yml.j2
+    dest: /etc/grafana/provisioning/datasources/ansible.yml
+    owner: grafana
+    group: grafana
+    mode: "0640"
+  become: true
+
+- name: Deploy Grafana init script
+  ansible.builtin.copy:
+    src: grafana.init
+    dest: /etc/init.d/grafana-server
+    mode: '0755'
+  become: true
+
+- name: Create Grafana runtime directory
+  ansible.builtin.file:
+    path: /run/grafana
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: '0750'
+  become: true
+
+- name: Enable and start Grafana
+  ansible.builtin.command: service grafana-server start
+  become: true
+  changed_when: true
+
+- name: Wait for Grafana to be ready
+  ansible.builtin.uri:
+    url: "http://localhost:{{ grafana_http_port }}/api/health"
+    status_code: 200
+  register: grafana_health
+  until: grafana_health.status == 200
+  retries: 15
+  delay: 3
+
+- name: Ensure Grafana plugins directory exists
+  ansible.builtin.file:
+    path: /var/lib/grafana/plugins
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: '0755'
+  become: true
+
+- name: Get list of installed plugins
+  ansible.builtin.command: grafana cli plugins ls
+  register: installed_plugins
+  changed_when: false
+  become: true
+
+- name: Install Grafana plugins
+  ansible.builtin.command: "grafana cli plugins install {{ item }}"
+  loop: "{{ grafana_plugins }}"
+  when: item not in installed_plugins.stdout
+  become: true
+  notify: Restart grafana
+
+- name: Download node_exporter community dashboard
+  ansible.builtin.get_url:
+    url: "https://grafana.com/api/dashboards/1860/revisions/latest/download"
+    dest: /etc/grafana/provisioning/dashboards/node-exporter.json
+    owner: grafana
+    group: grafana
+    mode: '0644'
+  become: true
+
+- name: Deploy dashboard provisioning config
+  ansible.builtin.template:
+    src: dashboard.yml.j2
+    dest: /etc/grafana/provisioning/dashboards/dashboard.yml
+    owner: grafana
+    group: grafana
+    mode: '0640'
+  become: true
+  notify: Restart grafana

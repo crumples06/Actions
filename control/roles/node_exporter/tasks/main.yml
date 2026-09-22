@@ -1,0 +1,34 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/node_exporter
+- name: Download node_exporter
+  get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v1.10.2/node_exporter-1.10.2.linux-amd64.tar.gz"
+    dest: /tmp/node_exporter.tar.gz
+  become: true
+
+- name: Extract node_exporter
+  unarchive:
+    src: /tmp/node_exporter.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: Install node_exporter binary
+  copy: 
+    src: /tmp/node_exporter-1.10.2.linux-amd64/node_exporter
+    dest: /usr/local/bin/node_exporter
+    mode: '0755'
+    remote_src: true
+  become: true
+
+- name: Deploy node_exporter init sript
+  copy:
+    src: node_exporter.init
+    dest: /etc/init.d/node_exporter
+    mode: '0755'
+  become: true
+
+- name: Start node_exporter
+  command: service node_exporter start 
+  become: true
+  changed_when: true

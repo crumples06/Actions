@@ -47,6 +47,12 @@ services:
       - ansible_net
     container_name: db
 
+  monitoring:
+    build: .
+    networks:
+    - ansible_net
+    container_name: monitoring
+
 networks:
   ansible_net:
     

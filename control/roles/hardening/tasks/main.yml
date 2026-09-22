@@ -26,3 +26,4 @@
     regexp: '^#?\s*PermitRootLogin\s+'
     line: 'PermitRootLogin prohibit-password'
   notify: reload ssh
+
